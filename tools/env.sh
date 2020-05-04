@@ -13,7 +13,7 @@ popd > /dev/null
 alias ac="java -jar $SCRIPT_PATH/ac.jar"
 
 # Alias to run Apple Emulator
-alias linapple="$SCRIPT_PATH/linapple --config $SCRIPT_PATH/linapple.conf"
+alias linapple="$SCRIPT_PATH/linapple --conf $SCRIPT_PATH/linapple.conf"
 
 # Alias to run Disk Browser tool.
 alias diskbrowser="java -jar $SCRIPT_PATH/DiskBrowser.jar"
