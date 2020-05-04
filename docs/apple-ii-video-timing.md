@@ -2,6 +2,16 @@
 
 This article I've taken from [this blog](http://rich12345.tripod.com/aiivideo/vbl.html) and simply converted it to markdown for cleaner reading.
 
+* Drawing and Explanation
+* Cycle counts
+* VBL
+* Screen draw
+* "Horizontal BLanks" 
+* Unverified Information
+* [Great Article by Bob Bishop from Softalk Mag](softalk.html)
+
+
+
 ## Explanation of drawing
 
 ![Video timing diagram](imgs/pagegraphic.gif)

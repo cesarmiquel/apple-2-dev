@@ -13,13 +13,17 @@ You need to install:
 This directory has assorted Apple II resources used for development / demos.
 
 - `AppleWin` - This directory has an emulator for the Apple 2 that runs under Windows. It runs pretty decently in Linux via wine
-- `Roms Apple II - Mame 0.219` - This directory has the Apple II Roms that work with Mame version 0.219. To use mame
+- `roms` - This folder has Apple 2 ROMS that work on Mame.
+    - `Roms Apple II - Mame 0.219` - This directory has the Apple II Roms that work with Mame version 0.219. To use mame
 `mame -rp <this-path> apple2c`
-- `Other Roms` - Other miscelanous roms that worked on older versions of Mame which don't seem to work now.
+    - `Other Roms` - Other miscelanous roms that worked on older versions of Mame which don't seem to work now.
 - `FRENCH_TOUCH_VAULT` - This has two tools from [French Touch Vault](http://fr3nch.t0uch.free.fr/) group used to generate disk images which can be read by the Apple and/or emulator.
 - `ftp.apple.asimov.net` - This has two directories I downloaded from `ftp.apple.asimov.net`: `/pub/apple_II/documentation/programming/6502assembly` and `/pub/apple_II/documentation/sourcecode`.
-- `Docs` - [The Big Tip Book for the Apple II Series](docs/Big_Tip_Book_OCR.pdf) - This is a book by the infamous Beagle Brothers.
-- `LinApple` - This has an open source Apple II emulator. The original code is [here](http://linapple.sourceforge.net/) but Mark Ormond made some modifications to be able to run in Raspi and some other changes. Available in [[Github]](https://github.com/dabonetn/linapple-pie)
+- `Docs` - This directory has articles and posts I've download from different sources.
+    - [The Big Tip Book for the Apple II Series](docs/Big_Tip_Book_OCR.pdf) - This is a book by the infamous Beagle Brothers.
+    - `apple-ii-video-timing.md` - An interesting article describing how the video is rendered on an Apple II
+    - `softalk-video-timing-article.md` - A magazine article mentioned inthe previous article also related to video timings.
+- `linapple` - This has an open source Apple II emulator for Linux. Its basically a `git clone` of [this repo](https://github.com/linappleii/linapple)
 
 - `demos`
 
@@ -32,12 +36,15 @@ This directory has several cool demos
 
 This directory has assorted Apple II resources used for development / demos.
 
-- `tools`
+### Tools
 
-This directory has several tools I downloaded and might need:
+The `tools` directory has several tools I downloaded and might need:
 
 - `env.sh` - setups some environment variables
    - `ac` an alias to run AppleCommander CLI client
+   - `linapple` an alias to run the emulator with the conf in this directory
 - `ac.jar` - Is a link to the `.jar` file of the AppleCommander CLI client
 - `dw.py` - Is tool used by the "French Touch Vault" guys to modify a disk image
 - `blank-dos.dsk` - A Blank DOS image
+- `linapple.conf` - Default configuration for LinApple
+- `DiskBrowser.jar` - Diskbrowser tool to inspect `dsk` images.

@@ -9,8 +9,11 @@ SCRIPT_PATH=`pwd -P`
 ROOTFS=`dirname "$SCRIPT_PATH"`
 popd > /dev/null
 
-# Alias to rnu Apple Commander
+# Alias to run Apple Commander
 alias ac="java -jar $SCRIPT_PATH/ac.jar"
 
 # Alias to run Apple Emulator
 alias linapple="$SCRIPT_PATH/linapple --config $SCRIPT_PATH/linapple.conf"
+
+# Alias to run Disk Browser tool.
+alias diskbrowser="java -jar $SCRIPT_PATH/DiskBrowser.jar"
