@@ -1,0 +1,97 @@
+                   ********************************************************************************
+                   * DOS 3.3 BOOT1 code.  Loads the DOS Read/Write Track/Sector (RWTS) code into  *
+                   * memory and transfers control to it.                                          *
+                   *                                                                              *
+                   * Copyright Apple Computer, Inc.                                               *
+                   *                                                                              *
+                   * Written by ?                                                                 *
+                   ********************************************************************************
+                   * Extracted from disk image that came with AppleWin.                           *
+                   *                                                                              *
+                   * Project created by Andy McFadden, using 6502bench SourceGen v1.4.            *
+                   * Last updated 2019/10/28.                                                     *
+                   ********************************************************************************
+                   data_ptr      .eq     $26    {addr/2}   ;pointer to read buffer
+                   slot_index    .eq     $2b               ;slot number << 4
+                   sector        .eq     $3d               ;sector to read
+                   read_func     .eq     $3e    {addr/2}   ;address of sector read routine
+                   ReadSectorBase .eq    $c05c             ;sector read func; must adjust for slot
+                   MON_INIT      .eq     $fb2f             ;screen initialization
+                   MON_SETKBD    .eq     $fe89             ;reset char input handler to ROM
+                   MON_SETVID    .eq     $fe93             ;reset char output handler to ROM
+
+                                 .org    $0800
+0800: 01                         .dd1    $01               ;BOOT0 code checks this to know when to stop
+
+                   ; 
+                   ; Entry point from BOOT0 (disk controller ROM).
+                   ; 
+                   ; Our goal is to read T0S0 through T0S9 into $B600-$BFFF.  This means that $B600
+                   ; will have a clone of this code, which is helpful if we want to format a
+                   ; bootable disk.
+                   ; 
+                   ; We're still just reading sectors from track 0, so we can use the sector-read
+                   ; function from the disk controller ROM to do all the hard work.
+                   ; 
+0801: a5 27                      lda     data_ptr+1        ;get the data buffer pointer
+0803: c9 09                      cmp     #$09              ;is this our first visit?
+0805: d0 18                      bne     DoRead            ;no, carry on
+                   ; 
+                   ; Set up a jump to the sector read routine, at offset +$5C in the Disk ][
+                   ; firmware.
+                   ; 
+0807: a5 2b                      lda     slot_index        ;adjust address for slot number
+0809: 4a                         lsr     A                 ;divide by 16
+080a: 4a                         lsr     A
+080b: 4a                         lsr     A
+080c: 4a                         lsr     A
+080d: 09 c0                      ora     #>ReadSectorBase  ;e.g. $C6 for slot 6
+080f: 85 3f                      sta     read_func+1
+0811: a9 5c                      lda     #<ReadSectorBase
+0813: 85 3e                      sta     read_func
+0815: 18                         clc
+0816: ad fe 08                   lda     read_buf_hi       ;initially $B6
+0819: 6d ff 08                   adc     sectors_to_read   ;last sector to read is #9
+081c: 8d fe 08                   sta     read_buf_hi       ;read last first, so start at $BF
+                   ; 
+                   ; Get next sector number to read.  Because we're working with raw sector
+                   ; headers, we need to deal with the interleave.
+                   ; 
+081f: ae ff 08     DoRead        ldx     sectors_to_read   ;counts from 9 down to 0, inclusive
+0822: 30 15                      bmi     AllDone
+0824: bd 4d 08                   lda     interleave_tab,x  ;get raw sector number
+0827: 85 3d                      sta     sector            ;parameter for read func
+0829: ce ff 08                   dec     sectors_to_read
+082c: ad fe 08                   lda     read_buf_hi       ;configure data_ptr high byte
+082f: 85 27                      sta     data_ptr+1
+0831: ce fe 08                   dec     read_buf_hi       ;back up a page for next iteration
+0834: a6 2b                      ldx     slot_index
+0836: 6c 3e 00                   jmp     (read_func)       ;jump to it; it'll call $801 when done
+
+0839: ee fe 08     AllDone       inc     read_buf_hi       ;+1 because we decremented after setting data_ptr
+083c: ee fe 08                   inc     read_buf_hi       ;+1 to jump to $B700 rather than $B600
+083f: 20 89 fe                   jsr     MON_SETKBD        ;reset character in/out and text screen
+0842: 20 93 fe                   jsr     MON_SETVID
+0845: 20 2f fb                   jsr     MON_INIT
+0848: a6 2b                      ldx     slot_index
+084a: 6c fd 08                   jmp     (entry_addr)      ;jump to $B700
+
+                   ; Map logical sectors to physical sectors.
+                   interleave_tab
+084d: 00 0d 0b 09+               .bulk   000d0b09070503010e0c0a080604020f
+                   ; 
+                   ; DOS patch area.  The BOOT1 code required very little space, so the extra is
+                   ; used for DOS patches.
+                   ; 
+085d: 48 20 64 a7+               .bulk   482064a7b005a900a89140684cd2a6ade6b5d00bade4b5d003cee5b5cee4b5ce
+                                  +      e6b54c7eae2094b14cbea620a3a2adeeb5a80aadefb5aa2a69010a854298e542
+                                  +      8de4b58ae9008de5b5b0d760c001ade6b5d037adf6b5f032adc2b5f02d901da9
+                                  +      ad20f19d69800820c6b0b0262890052052b170052073b1f0092099b120fb9db8
+                                  +      50e420f79db0082099b1b0034c96ac4ccaac4c6fb3a3a0d2cfd2d2c58d878d00
+                   ; 
+                   ; Variables.
+                   ; 
+08fd: 00           entry_addr    .dd1    $00               ;always $00; forms low part of two-byte address
+08fe: b6           read_buf_hi   .dd1    $b6               ;high byte of lowest buffer address
+                   sectors_to_read
+08ff: 09                         .dd1    $09               ;number of sectors to read
