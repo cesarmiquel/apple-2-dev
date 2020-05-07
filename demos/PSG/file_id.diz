@@ -1,0 +1,9 @@
+PSG/goblinish
+work on Apple iie, Mockingboard required
+
+music:A.T.F. (19xx)(Digital Integration).ym
+code: g0blinish
+some parts taken from French Touch(interrupt setup+player)
+zx7 by Peter Ferrie(http://pferrie.host22.com/misc/appleii.htm) - rewrite 65c02 coz acme declined to compile 6502 code
+
+type BRUN PSG, enjoy.
