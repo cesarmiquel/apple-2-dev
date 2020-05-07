@@ -1,0 +1,182 @@
+!cpu 6502
+!sl "lbl_main.txt"
+
+           *= $c00 ; ORG = $c00
+
+; =====================================
+; PAGE ZERO
+BUFFER              = $00       ; 00 - 1f buffer space
+
+COUNTER1            = $80
+CUR_PAT_BYTE        = $82
+ACTIVEPG            = $83       ; 0 - page 1   1 - page 2
+
+MAIN
+!zone
+            sta $C050           ; Lowres gfx
+            sta $C053           ; mixed mode
+;            sta $C055           ; Clear screen 1 & 2
+;            jsr $f832
+            sta $C054
+            jsr $f832
+
+            lda #0
+            sta ACTIVEPG
+
+.start
+            lda #4
+            sta COUNTER1
+            ldx #0
+            ldy #0
+            lda PATTERN, x
+            sta CUR_PAT_BYTE
+
+.loop
+            and #%11000000
+            beq .save
++           cmp #%10000000
+            bne +
+            lda #$0f
+            bne .save
++           cmp #%01000000
+            bne +
+            lda #$f0
+            bne .save
++           lda #$ff
+.save
+            sta BUFFER,y
+            iny
+
+            dec COUNTER1
+            beq .nextbyte
+
+            rol CUR_PAT_BYTE
+            rol CUR_PAT_BYTE
+
+            lda CUR_PAT_BYTE
+            jmp .loop
+
+.nextbyte
+
+            inx
+            lda #4
+            sta COUNTER1
+            lda PATTERN, x
+            sta CUR_PAT_BYTE
+            bne .loop               ; exit when we find a 0
+
+            lda ACTIVEPG
+            beq .blitpg1            ; active page 1 then blit to page 2
+
+.blitpg1
+
+-	 	    cmp $c019               ; Wait VBL
+		    bpl -
+            ldy #0
+-           lda BUFFER
+            sta $400,y
+            lda BUFFER+1
+            sta $480,y
+            lda BUFFER+2
+            sta $500,y
+            lda BUFFER+3
+            sta $580,y
+            lda BUFFER+4
+            sta $600,y
+            lda BUFFER+5
+            sta $680,y
+            lda BUFFER+6
+            sta $700,y
+            lda BUFFER+7
+            sta $780,y
+            lda BUFFER+8
+            sta $428,y
+            lda BUFFER+9
+            sta $4a8,y
+            lda BUFFER+10
+            sta $528,y
+            lda BUFFER+11
+            sta $5a8,y
+            lda BUFFER+12
+            sta $628,y
+            lda BUFFER+13
+            sta $6a8,y
+            lda BUFFER+14
+            sta $728,y
+            iny
+            cpy #10
+            bne -
+            beq .swichpg
+
+.blitpg2
+            ldy #0
+-           lda BUFFER
+            sta $400+ $400,y
+            lda BUFFER+1
+            sta $400 + $480,y
+            lda BUFFER+2
+            sta $400 + $500,y
+            lda BUFFER+3
+            sta $400 + $580,y
+            lda BUFFER+4
+            sta $400 + $600,y
+            lda BUFFER+5
+            sta $400 + $680,y
+            lda BUFFER+6
+            sta $400 + $700,y
+            lda BUFFER+7
+            sta $400 + $780,y
+            lda BUFFER+8
+            sta $400 + $428,y
+            lda BUFFER+9
+            sta $400 + $4a8,y
+            lda BUFFER+10
+            sta $400 + $528,y
+            lda BUFFER+11
+            sta $400 + $5a8,y
+            lda BUFFER+12
+            sta $400 + $628,y
+            lda BUFFER+13
+            sta $400 + $6a8,y
+            lda BUFFER+14
+            sta $400 + $728,y
+            iny
+            cpy #10
+            bne -
+
+; Switch to new page
+.swichpg
+;DELAY DELAY DELAY
+            lda #$80
+            jsr $fca8
+            lda ACTIVEPG
+            beq +
+            lda #0
+            ;sta $c054
+            beq .scroll
++           lda #1
+            ;sta $c055
+            
+
+.scroll
+            sta ACTIVEPG            ; save active page
+            ldx #0
+            clc
+-           lda PATTERN,x
+            beq +
+            ror
+            sta PATTERN,x
+            inx
+            bne -
++           bcc .refresh
+-           lda PATTERN
+            ora #%10000000
+-           sta PATTERN
+.refresh
+            jmp .start
+            rts
+ 
+; =============================================================================
+PATTERN !byte $12,$43,$71,$d3,$a0,$26,$f1,$0f,$10,$43, $f3, $01, $02,$00 ; Must end in $00
+;ROWSPG1 !word $400,$480,$500,$580,$600,$680,$700,$780,$428,$4a8,$528,$5a8,$628,$6a8,$728 
+;ROWSPG2 !word $800,$880,$900,$980,$a00,$a80,$b00,$b80,$828,$8a8,$928,$9a8,$a28,$aa8,$b28 
