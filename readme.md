@@ -48,3 +48,10 @@ The `tools` directory has several tools I downloaded and might need:
 - `blank-dos.dsk` - A Blank DOS image
 - `linapple.conf` - Default configuration for LinApple
 - `DiskBrowser.jar` - Diskbrowser tool to inspect `dsk` images.
+
+### Random notes
+
+
+- To use Mame: You need to have the apple2c.zip **on the same directory** where you're running mame then do:
+
+`mame -verbose -debug -rp . apple2c -flop1 ../../tests/dos-3.3.dsk`
