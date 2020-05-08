@@ -107,36 +107,42 @@ MAIN
 ;-	 	    cmp $c019               ; Wait VBL
 ;		    bpl -
             ldy #0
--           lda BUFFER
-            sta $400,y
-            lda BUFFER+1
-            sta $480,y
-            lda BUFFER+2
-            sta $500,y
-            lda BUFFER+3
-            sta $580,y
-            lda BUFFER+4
-            sta $600,y
+;-           lda BUFFER
+;            sta $400,y
+;            lda BUFFER+1
+;            sta $480,y
+;            lda BUFFER+2
+;            sta $500,y
+;            lda BUFFER+3
+;            sta $580,y
+-            lda BUFFER+4
+            sta $600+12,y
             lda BUFFER+5
-            sta $680,y
+            sta $680+12,y
             lda BUFFER+6
-            sta $700,y
+            sta $700+12,y
             lda BUFFER+7
-            sta $780,y
+            sta $780+12,y
             lda BUFFER+8
-            sta $428,y
+            sta $428+12,y
             lda BUFFER+9
-            sta $4a8,y
+            sta $4a8+12,y
             lda BUFFER+10
-            sta $528,y
+            sta $528+12,y
             lda BUFFER+11
-            sta $5a8,y
+            sta $5a8+12,y
             lda BUFFER+12
-            sta $628,y
+            sta $628+12,y
             lda BUFFER+13
-            sta $6a8,y
+            sta $6a8+12,y
             lda BUFFER+14
-            sta $728,y
+            sta $728+12,y
+            lda BUFFER+15
+            sta $7a8+12,y
+            lda BUFFER+16
+            sta $450+12,y
+            lda BUFFER+17
+            sta $4d0+12,y
             iny
             cpy #5
             bne -
