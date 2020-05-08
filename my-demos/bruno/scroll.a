@@ -7,34 +7,49 @@
 ; PAGE ZERO
 BUFFER              = $00       ; 00 - 1f buffer space
 
-COUNTER1            = $80
-CUR_PAT_BYTE        = $82
-ACTIVEPG            = $83       ; 0 - page 1   1 - page 2
+FRAMECOUNTER        = $80
+COUNTER1            = $81
+COUNTER2            = $82
+TEMPVAR1            = $83
+TEMPVAR2            = $84
+ACTIVE_PATTERN      = $85       ; Pointer to current pattern
+
+PATTERN_LENGTH      = 10
 
 MAIN
 !zone
             sta $C050           ; Lowres gfx
             sta $C053           ; mixed mode
-;            sta $C055           ; Clear screen 1 & 2
-;            jsr $f832
-            sta $C054
-            jsr $f832
+            jsr $f832           ; clear screen
 
             lda #0
-            sta ACTIVEPG
-
+            sta FRAMECOUNTER    ; init frame counter
 .start
-            lda #4
-            sta COUNTER1
             ldx #0
             ldy #0
-            lda PATTERN, x
-            sta CUR_PAT_BYTE
+
+;
+; Convert bit pattern into colors and store in buffer
+;
+.loopinit
+            lda #4
+            sta COUNTER2
+
+            lda PATTERNBG,x     ; put bg in temp2
+            sta TEMPVAR2
+
+            lda PATTERN,x
+            sta TEMPVAR1        ; put fg in temp1
+            pha
+            eor #$ff
+            and TEMPVAR2        ; bits with 1 in tempvar2 show through
+            sta TEMPVAR2
+            pla
 
 .loop
             and #%11000000
             beq .save
-+           cmp #%10000000
+            cmp #%10000000
             bne +
             lda #$0f
             bne .save
@@ -45,33 +60,54 @@ MAIN
 +           lda #$ff
 .save
             sta BUFFER,y
+
+; Fill background bits that show throught
+
+            lda TEMPVAR2
+            and #%11000000
+            cmp #%11000000
+            bne +
+            lda #$11
+            bne .savebg
++           cmp #%10000000
+            bne +
+            lda #$01            ; both gray 4 looks good too
+            bne .savebg
++           cmp #%01000000
+            bne +
+            lda #$10
+            bne .savebg
++           lda #$00
+
+.savebg
+            ora BUFFER,y
+            sta BUFFER,y
+
             iny
 
-            dec COUNTER1
+            dec COUNTER2
             beq .nextbyte
 
-            rol CUR_PAT_BYTE
-            rol CUR_PAT_BYTE
+            rol TEMPVAR2
+            rol TEMPVAR2
 
-            lda CUR_PAT_BYTE
+            rol TEMPVAR1
+            rol TEMPVAR1
+
+            lda TEMPVAR1
             jmp .loop
 
 .nextbyte
-
             inx
-            lda #4
-            sta COUNTER1
-            lda PATTERN, x
-            sta CUR_PAT_BYTE
-            bne .loop               ; exit when we find a 0
+            cpx #PATTERN_LENGTH
+            bne .loopinit
 
-            lda ACTIVEPG
-            beq .blitpg1            ; active page 1 then blit to page 2
+.donefill
 
 .blitpg1
 
--	 	    cmp $c019               ; Wait VBL
-		    bpl -
+;-	 	    cmp $c019               ; Wait VBL
+;		    bpl -
             ldy #0
 -           lda BUFFER
             sta $400,y
@@ -104,79 +140,63 @@ MAIN
             lda BUFFER+14
             sta $728,y
             iny
-            cpy #10
-            bne -
-            beq .swichpg
-
-.blitpg2
-            ldy #0
--           lda BUFFER
-            sta $400+ $400,y
-            lda BUFFER+1
-            sta $400 + $480,y
-            lda BUFFER+2
-            sta $400 + $500,y
-            lda BUFFER+3
-            sta $400 + $580,y
-            lda BUFFER+4
-            sta $400 + $600,y
-            lda BUFFER+5
-            sta $400 + $680,y
-            lda BUFFER+6
-            sta $400 + $700,y
-            lda BUFFER+7
-            sta $400 + $780,y
-            lda BUFFER+8
-            sta $400 + $428,y
-            lda BUFFER+9
-            sta $400 + $4a8,y
-            lda BUFFER+10
-            sta $400 + $528,y
-            lda BUFFER+11
-            sta $400 + $5a8,y
-            lda BUFFER+12
-            sta $400 + $628,y
-            lda BUFFER+13
-            sta $400 + $6a8,y
-            lda BUFFER+14
-            sta $400 + $728,y
-            iny
-            cpy #10
+            cpy #5
             bne -
 
-; Switch to new page
-.swichpg
+
 ;DELAY DELAY DELAY
-            lda #$80
+            lda #$a0
             jsr $fca8
-            lda ACTIVEPG
-            beq +
-            lda #0
-            ;sta $c054
-            beq .scroll
-+           lda #1
-            ;sta $c055
-            
 
 .scroll
-            sta ACTIVEPG            ; save active page
-            ldx #0
+            ldx #0              ; scroll fgpattern
             clc
--           lda PATTERN,x
-            beq +
+            php
+-           plp
+            lda PATTERN,x
             ror
             sta PATTERN,x
+            php
             inx
+            cpx #PATTERN_LENGTH
             bne -
-+           bcc .refresh
--           lda PATTERN
+            plp
+            bcc +
+            lda PATTERN
             ora #%10000000
--           sta PATTERN
+            sta PATTERN
+
++
+            lda FRAMECOUNTER
+            and #%00000011
+            bne .refresh
+
+            ldx #0              ; scroll bgpattern
+            clc
+            php
+-           plp
+            lda PATTERNBG,x
+            ror
+            sta PATTERNBG,x
+            php
+            inx
+            cpx #PATTERN_LENGTH
+            bne -
+            plp
+            bcc .refresh
+            lda PATTERNBG
+            ora #%10000000
+            sta PATTERNBG
+
+
 .refresh
+            inc FRAMECOUNTER
             jmp .start
             rts
- 
+
 ; =============================================================================
-PATTERN !byte $12,$43,$71,$d3,$a0,$26,$f1,$0f,$10,$43, $f3, $01, $02,$00 ; Must end in $00
-;ROWSPG1 !word $400,$480,$500,$580,$600,$680,$700,$780,$428,$4a8,$528,$5a8,$628,$6a8,$728 
-;ROWSPG2 !word $800,$880,$900,$980,$a00,$a80,$b00,$b80,$828,$8a8,$928,$9a8,$a28,$aa8,$b28 
+;PATTERN   !byte $12,$43,$71,$d3,$a0,$26,$01,$0f,$10,$44,$f3,$01,$02,$00 ; Must end in $00
+PATTERN   !byte $80,$01,$01,$80,$0f,$f1,$01,$80,$10,$44,$03,$01,$80,$00 ; Must end in $00
+PATTERNBG !byte $f2,$03,$31,$73,$a0,$26,$80,$01,$10,$81,$03,$18,$02,$00 ; Must end in $00
+;ROWSPG1 !word $400,$480,$500,$580,$600,$680,$700,$780,$428,$4a8,$528,$5a8,$628,$6a8,$728
+;ROWSPG2 !word $800,$880,$900,$980,$a00,$a80,$b00,$b80,$828,$8a8,$928,$9a8,$a28,$aa8,$b28
