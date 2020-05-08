@@ -156,8 +156,17 @@ Accessing this location causes all cards in all slots to disable their $C800-$CF
 
 To display the double hi-res mode, set the following soft switches:
 
+`$C000 = KBDINPUT`
+Keyboard Input Location
+
 `$C00D = 80COL`
 Write to it to turn on 80 column switch
+
+`$C010 = KBDSTR`
+Keyboard Strobe
+
+`$C030 = SPKRCLICK`
+Click keyboard. Don't use `sta $c030`. Use `bit $c030` instead.
 
 `$C050 = GR`
 Read/write to it to switch to graphics mode. If you read `$C050` has the value of the screen memory we are currently displaying on the screen
