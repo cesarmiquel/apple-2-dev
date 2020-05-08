@@ -9,12 +9,16 @@ BUFFER              = $00       ; 00 - 1f buffer space
 
 FRAMECOUNTER        = $80
 COUNTER1            = $82
-TEMPVAR1            = $83
 TEMPVAR2            = $84
 ACTIVE_PATTERN      = $85       ; Pointer to current pattern
-PTR                 = $8a
 
-PATTERN_LENGTH      = 7
+PATTERN_LENGTH      = 18
+
+PTRFG               = $8a
+PTRBG               = $8c
+
+PATTERNFG           = $f0d0
+PATTERNBG           = PATTERNFG - 10
 
 MAIN
 !zone
@@ -22,6 +26,16 @@ MAIN
             jsr $f832           ; clear screen
 
             sta FRAMECOUNTER    ; init frame counter
+            lda #<PATTERNFG
+            sta PTRFG
+            lda #>PATTERNFG
+            sta PTRFG+1
+
+            lda #<PATTERNBG
+            sta PTRBG
+            lda #>PATTERNBG
+            sta PTRBG+1
+            
 .start
             ldx #0
             ldy #0
@@ -30,82 +44,42 @@ MAIN
 ; Convert bit pattern into colors and store in buffer
 ;
 .loopinit
-            lda #4
-            sta COUNTER1
 
-            lda PATTERNBG,x     ; put bg in temp2
-            sta TEMPVAR2
-
-            lda PATTERN,x
-            sta TEMPVAR1        ; put fg in temp1
-            pha
-            eor #$ff
-            and TEMPVAR2        ; bits with 1 in tempvar2 show through
-            sta TEMPVAR2
-            pla
-
-.loop
-            and #%11000000
-            beq .save
-            cmp #%10000000
-            bne +
+            lda (PTRFG),y
+            and #%00000001
+            beq +
             lda #$0f
             bne .save
-+           cmp #%01000000
-            bne +
-            lda #$f0
-            bne .save
-+           lda #$ff
++           lda (PTRBG),y
+            and #%00000001
+            beq .save
+            lda #$01
 .save
-            sta BUFFER,y
-
-; Fill background bits that show throught
-
-            lda TEMPVAR2
-            and #%11000000
-            cmp #%11000000
-            bne +
-            lda #$11
-            bne .savebg
-+           cmp #%10000000
-            bne +
-            lda #$01            ; both gray 4 looks good too
-            bne .savebg
-+           cmp #%01000000
-            bne +
-            lda #$10
-            bne .savebg
-+           lda #$00
-
-.savebg
-            ora BUFFER,y
-            sta BUFFER,y
+            sta BUFFER,x
 
             iny
 
-            dec COUNTER1
-            beq .nextbyte
-
-            rol TEMPVAR2
-            rol TEMPVAR2
-
-            rol TEMPVAR1
-            rol TEMPVAR1
-
-            lda TEMPVAR1
-            jmp .loop
+            lda (PTRFG),y
+            and #%00000001
+            beq +
+            lda #$f0
+            bne .save2
++           lda (PTRBG),y
+            and #%00000001
+            beq .save2
+            lda #$10
+.save2
+            ora BUFFER,x
+            sta BUFFER,x
 
 .nextbyte
+            iny
             inx
             cpx #PATTERN_LENGTH
             bne .loopinit
 
-.donefill
-
 .blitbuffer
 
-;-	 	    cmp $c019               ; Wait VBL
-;		    bpl -
             ldy #0
 ;-           lda BUFFER
 ;            sta $400,y
@@ -149,53 +123,22 @@ MAIN
 
 
 ;DELAY DELAY DELAY
-            lda #$80
+            lda #$a0
             jsr $fca8
 
-.scroll
-            lda #<PATTERN
-            sta PTR
-            lda #>PATTERN
-            sta PTR+1
-            jsr .scrollpattern
+            inc FRAMECOUNTER
 
+            dec PTRFG
             lda FRAMECOUNTER
             and #%00000011
-            bne .refresh
+            bne +
 
-            lda #<PATTERNBG
-            sta PTR
-            lda #>PATTERNBG
-            sta PTR+1
-            jsr .scrollpattern
-
-.refresh
-            inc FRAMECOUNTER
-            jmp .start
-            rts
-
-.scrollpattern
-            ldy #0              ; scroll fgpattern
-            clc
-            php
--           plp
-            lda (PTR),y
-            ror
-            sta (PTR),y
-            php
-            iny
-            cpy #PATTERN_LENGTH
-            bne -
-            plp
-            bcc +
-            ldy #0
-            lda (PTR),y
-            ora #%10000000
-            sta (PTR),y
+            dec PTRBG
 +
-            rts
+            jmp .start
 
+            rts
 
 ; =============================================================================
-PATTERN   !byte $80,$01,$01,$80,$0f,$f1,$01 ; Must end in $00
-PATTERNBG !byte $f2,$03,$31,$73,$a0,$26,$80 ; Must end in $00
+;PATTERN   !byte $80,$01,$01,$80,$0f,$f1,$01 ; Must end in $00
+;PATTERNBG !byte $f2,$03,$31,$73,$a0,$26,$80 ; Must end in $00
