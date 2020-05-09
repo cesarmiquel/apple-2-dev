@@ -1,0 +1,144 @@
+!cpu 6502
+!sl "lbl_main.txt"
+
+           *= $c00 ; ORG = $c00
+
+; =====================================
+; PAGE ZERO
+BUFFER              = $00       ; 00 - 1f buffer space
+
+FRAMECOUNTER        = $80
+COUNTER1            = $82
+TEMPVAR2            = $84
+ACTIVE_PATTERN      = $85       ; Pointer to current pattern
+
+PATTERN_LENGTH      = 18
+
+PTRFG               = $8a
+PTRBG               = $8c
+
+PATTERNFG           = $f0d0
+PATTERNBG           = PATTERNFG - 10
+
+MAIN
+!zone
+            sta $C050           ; Lowres gfx
+            jsr $f832           ; clear screen
+
+            sta FRAMECOUNTER    ; init frame counter
+            lda #<PATTERNFG
+            sta PTRFG
+            lda #>PATTERNFG
+            sta PTRFG+1
+
+            lda #<PATTERNBG
+            sta PTRBG
+            lda #>PATTERNBG
+            sta PTRBG+1
+            
+.start
+            ldx #0
+            ldy #0
+
+;
+; Convert bit pattern into colors and store in buffer
+;
+.loopinit
+
+            lda (PTRFG),y
+            and #%00000001
+            beq +
+            lda #$0f
+            bne .save
++           lda (PTRBG),y
+            and #%00000001
+            beq .save
+            lda #$01
+.save
+            sta BUFFER,x
+
+            iny
+
+            lda (PTRFG),y
+            and #%00000001
+            beq +
+            lda #$f0
+            bne .save2
++           lda (PTRBG),y
+            and #%00000001
+            beq .save2
+            lda #$10
+.save2
+            ora BUFFER,x
+            sta BUFFER,x
+
+.nextbyte
+            iny
+            inx
+            cpx #PATTERN_LENGTH
+            bne .loopinit
+
+.blitbuffer
+
+            ldy #0
+;-           lda BUFFER
+;            sta $400,y
+;            lda BUFFER+1
+;            sta $480,y
+;            lda BUFFER+2
+;            sta $500,y
+;            lda BUFFER+3
+;            sta $580,y
+-            lda BUFFER+4
+            sta $600+17,y
+            lda BUFFER+5
+            sta $680+17,y
+            lda BUFFER+6
+            sta $700+17,y
+            lda BUFFER+7
+            sta $780+17,y
+            lda BUFFER+8
+            sta $428+17,y
+            lda BUFFER+9
+            sta $4a8+17,y
+            lda BUFFER+10
+            sta $528+17,y
+            lda BUFFER+11
+            sta $5a8+17,y
+            lda BUFFER+12
+            sta $628+17,y
+            lda BUFFER+13
+            sta $6a8+17,y
+            lda BUFFER+14
+            sta $728+17,y
+            lda BUFFER+15
+            sta $7a8+17,y
+            lda BUFFER+16
+            sta $450+17,y
+            lda BUFFER+17
+            sta $4d0+17,y
+            iny
+            cpy #5
+            bne -
+
+
+;DELAY DELAY DELAY
+            lda #$a0
+            jsr $fca8
+
+            inc FRAMECOUNTER
+
+            dec PTRFG
+            lda FRAMECOUNTER
+            and #%00000011
+            bne +
+
+            dec PTRBG
++
+            jmp .start
+
+            rts
+
+; =============================================================================
+;PATTERN   !byte $80,$01,$01,$80,$0f,$f1,$01 ; Must end in $00
+;PATTERNBG !byte $f2,$03,$31,$73,$a0,$26,$80 ; Must end in $00
