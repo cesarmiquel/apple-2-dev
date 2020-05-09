@@ -1,0 +1,128 @@
+!cpu 6502
+!sl "lbl_main.txt"
+
+           *= $c00 ; ORG = $c00
+
+; =====================================
+; PAGE ZERO
+CURRENT_COLOR       = $0
+FRAMECOUNTER        = $1
+BUFFER              = $10       ; 00 - 1f buffer space
+COLORS              = $f0
+; pallete: 22 66 77 55
+; pallete: 33 11 bb 55
+
+; Constants
+
+PATTERN_LENGTH      = 40
+
+PTRFG               = $8a
+PTRBG               = $8c
+
+PATTERNFG           = $f0d0
+PATTERNBG           = PATTERNFG - 10
+
+!zone
+            sta $C050           ; Lowres gfx
+            jsr $f832           ; clear screen
+
+            sta FRAMECOUNTER    ; init frame counter
+            lda #<PATTERNFG
+            sta PTRFG
+            lda #>PATTERNFG
+            sta PTRFG+1
+
+            lda #<PATTERNBG
+            sta PTRBG
+            lda #>PATTERNBG
+            sta PTRBG+1
+
+            lda #$22
+            sta COLORS
+            lda #$66
+            sta COLORS+1
+            lda #$77
+            sta COLORS+2
+            lda #$55
+            sta COLORS+3
+            lda #$33
+            sta COLORS+4
+            lda #$11
+            sta COLORS+5
+            lda #$bb
+            sta COLORS+6
+            lda #$55
+            sta COLORS+7
+
+            lda #0
+            sta CURRENT_COLOR
+            
+.start
+            ldy #0
+
+;
+; Convert bit pattern into colors and store in buffer
+;
+.loopinit
+
+            lda (PTRFG),y
+            and #%00000001
+            beq +
+            lda #$ff
+            bne .save
++           lda (PTRBG),y
+            and #%00000001
+            beq .save
+;            lda #$11
+            lda CURRENT_COLOR
+            and #%00000111
+            tax
+            lda COLORS,x
+.save
+            sta BUFFER,y
+
+            iny
+            cpy #PATTERN_LENGTH * 2
+            bne .loopinit
+
+.blitbuffer
+
+            ldy #0
+.rowstart
+            ldx #0
+-           lda BUFFER,x
+            sta $480,y
+            sta $500,y
+            sta $580,y
+            sta $600,y
+            sta $680,y
+            sta $700,y
+            iny
+            inx
+            cpx #PATTERN_LENGTH
+            bne -
+            cpy #40*3
+            bmi .rowstart
+
+;DELAY DELAY DELAY
+.delay
+            lda #$a0
+            jsr $fca8
+
+            inc FRAMECOUNTER
+
+            dec PTRFG
+            lda FRAMECOUNTER
+            and #%00001111
+            bne +
+
+            dec PTRBG
+
++           lda FRAMECOUNTER
+            and #%01111111
+            bne +
+
+            inc CURRENT_COLOR
++
+            jmp .start
+
