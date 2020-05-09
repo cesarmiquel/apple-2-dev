@@ -54,6 +54,5 @@ PATTERN_LENGTH      = 40
             jsr $fca8
 
             dec PTRFG
-;            inc PTRBG
 
             bcs .start
