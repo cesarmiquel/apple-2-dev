@@ -19,7 +19,7 @@ scroll-multicolor.b: scroll-multicolor.a
 	echo "Compiling scroll-multicolor"
 	${ACME} -f plain -o scroll-multicolor.b scroll-multicolor.a
 	${AC} -d bruno.dsk i
-	${AC} -p bruno.dsk i B 0x70 < scroll-multicolor.b
+	${AC} -p bruno.dsk i B 0xa0 < scroll-multicolor.b
 
 
 clean:
