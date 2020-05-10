@@ -7,15 +7,12 @@
 PTRFG               = $a1       ; reuse beginning of code
 PTRBG               = $9f
 
-FRAMECOUNTER        = $0
-
 !zone
             jsr $f832           ; clear screen
             sta $C050           ; Lowres gfx
 .start
-            inc FRAMECOUNTER
-            bmi .blit          ; skip from 128-255
-            ldy FRAMECOUNTER
+            iny
+            bmi .start          ; skip from 128-255
             bne +
 
             dec+1 PTRFG
