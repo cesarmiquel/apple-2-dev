@@ -7,7 +7,6 @@
 PTRFG               = $a1       ; reuse beginning of code
 PTRBG               = $9f
 
-!zone
             jsr $f832           ; clear screen
             sta $C050           ; Lowres gfx
 .start
