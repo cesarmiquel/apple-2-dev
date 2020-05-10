@@ -29,10 +29,10 @@ PTRBG               = $9f
             beq .blit
             lda #$11
 .blit
-            sta $480,y
             sta $500,y
             sta $580,y
             sta $600,y
+            sta $680,y
 
 .delay
             lda #$8

@@ -34,10 +34,10 @@ PTRBG               = $9f
             tax
             lda+1 COLORS,x
 .blit
-            sta $480,y
             sta $500,y
             sta $580,y
             sta $600,y
+            sta $680,y
 
 .delay
             lda #$8
