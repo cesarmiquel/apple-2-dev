@@ -1,0 +1,96 @@
+!cpu 6502
+!sl "lbl_main.txt"
+
+           *= $70 ; ORG = $70
+
+; =====================================
+; PAGE ZERO
+CURRENT_COLOR       = $0
+FRAMECOUNTER        = $1
+BUFFER              = $10       ; 00 - 1f buffer space
+
+; pallete: 22 66 77 55
+; pallete: 33 11 bb 55
+
+; Constants
+
+PATTERN_LENGTH      = 40
+
+!zone
+            sta $C050           ; Lowres gfx
+            jsr $f832           ; clear screen
+
+.start
+            ldy #PATTERN_LENGTH + 3
+
+; Fill buffer with bars to render
+.loopinit
+            lda (PTRFG),y
+            ror
+            bcc +
+            lda #$ff
+            bne .save
++           lda (PTRBG),y
+            and #%00000001
+            beq .save
+            lda CURRENT_COLOR
+            and #%00000011
+            tax
+            lda+1 COLORS,x
+.save
+            dey
+            sta BUFFER,y
+            bne .loopinit
+
+.blitbuffer
+            ldx #0
+-           lda BUFFER,x
+            sta $480,y
+            sta $500,y
+            sta $580,y
+            sta $600,y
+            iny
+            inx
+            cpx #PATTERN_LENGTH-1
+            bne -
+
+; Middle
+-           lda BUFFER,x
+            sta $480,y
+            sta $500,y
+            sta $580,y
+            sta $600,y
+            iny
+            dex
+            bne -
+
+-           lda BUFFER,x
+            sta $480,y
+            sta $500,y
+            sta $580,y
+            sta $600,y
+            iny
+            inx
+            cpx #PATTERN_LENGTH+2
+            bne -
+
+.delay
+            lda #$a0
+            jsr $fca8
+
+            inc FRAMECOUNTER
+
+            dec+1 PTRFG
+            inc+1 PTRBG
+
++           lda FRAMECOUNTER
+            and #%00111111
+            bne +
+
+            inc CURRENT_COLOR
++
+            jmp .start
+
+PTRFG   !byte $80,$fd
+PTRBG   !byte $01,$fd
+COLORS  !byte $33,$11,$bb,$55
