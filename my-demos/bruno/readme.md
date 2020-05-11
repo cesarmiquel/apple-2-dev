@@ -1,6 +1,6 @@
 ## 51 Byte Parallax Scrollbar Apple II demo
 
-This is an idea I worked on for an effect on an Apple II. The seed came from watching this YouTube video of a collection of tiny BBCMicro demos [[YouTube]](https://www.youtube.com/watch?v=Hgn-evFqZas) and the **Brainwave** 64k Demo entry from Revision '20 [[YouTube]](https://www.youtube.com/watch?v=FYyL_mEQWOM&feature=youtu.be&t=1514). In particular this small section:
+This is an idea I worked on for an effect on an Apple II. The seed came from watching this YouTube video of a collection of tiny BBCMicro demos [[YouTube]](https://www.youtube.com/watch?v=Hgn-evFqZas) and the **Brainwave** 64k Demo entry from Revision '19 [[YouTube]](https://www.youtube.com/watch?v=FYyL_mEQWOM&feature=youtu.be&t=1514). In particular this small section:
 
 ![Brainwave 3](imgs/brainworm.png)
 
