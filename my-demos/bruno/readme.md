@@ -18,6 +18,14 @@ Finally to add some variations I created a third version which cycles through 4 
 
 I also uploaded a YouTube video with all them running [here](https://www.youtube.com/watch?v=zJpT-gt-ZO4). Here's the source for the 62 byte version.
 
+## Files
+
+- `scroll.a` - This is the 51 byte version of the horizontal scroller
+- `vscroll.a` - The vertical scrolling version (175 byte version)
+- `scroll-multicolor.a` - The 62 byte version which cycles colors
+- `bruno.dsk` - An Apple II image you can boot to and run all 3 demos by typing `bruno`, `bruna` and `bruni` (`brun a` ;-))
+- `scroll-106b.a`,  `scroll-multicolor-126.a`, `scroll-multicolor-92.a` - Some intermidiate steps
+
 
 ## Notes for me:
 
