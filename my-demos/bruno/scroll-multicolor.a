@@ -44,4 +44,4 @@ PTRBG               = $9f
 
             bcs .start
 
-COLORS  !byte $33,$11,$bb,$55
+COLORS  !byte $11,$33,$bb,$55
