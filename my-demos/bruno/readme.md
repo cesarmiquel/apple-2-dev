@@ -16,13 +16,10 @@ Finally to add some variations I created a third version which cycles through 4 
 
 ![Bruni - 62 bytes](imgs/bruni.gif)
 
-I also uploaded a YouTube video with all them running [here](https://www.youtube.com/watch?v=zJpT-gt-ZO4). Here's the source for the 62 byte version. You can see all the project on my Apple II development Github project [[GitHub]](https://github.com/cesarmiquel/apple-2-dev/tree/master/my-demos/bruno)
+I also uploaded a YouTube video with all them running [here](https://www.youtube.com/watch?v=zJpT-gt-ZO4). Here's the source for the 62 byte version.
 
 
-# Readme
-
-
-## Testing:
+## Notes for me:
 
 - In Mame: 
 
