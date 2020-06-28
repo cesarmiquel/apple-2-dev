@@ -1,0 +1,461 @@
+!cpu 6502
+
+           *= $2000 ; ORG = $2000
+
+; =====================================
+; PAGE ZERO
+
+            sta $C050           ; Lowres gfx
+            sta $C053           ; Mixed mode
+            sta $C05e           ; Enable 80col
+            sta $c00d
+
+            jsr $f832           ; clear gr screen
+
+            jsr .cleartext
+            sta $c001
+            sta $c055           ; switch to page 1x
+            jsr $f832           ; clear gr screen
+            jsr .cleartext
+
+            sta $c054           ; switch to page 1
+
+            jsr .generatescroll
+
+.start
+
+
+            ldx #10
+-           lda TEXT,x
+.blit       sta $6d0 + 25
+            dec .blit+1
+            dex
+            bpl -
+
+
+            lda #$ff
+            jsr .draw
+            sta $c055           ; switch to page 1x
+
+;            lda #$40           ; green
+            lda #$30            ; violet
+;            lda #$d0           ; yellow
+            jsr .draw
+
+-
+            ldx #14
+            jsr .scrolldown     ; scroll 4ever
+            ldx #19
+            jsr .scrolldown     ; scroll 4ever
+            ldx #24
+            jsr .scrolldown     ; scroll 4ever
+            ldx #30
+            jsr .scrolldown     ; scroll 4ever
+            ldx #30
+            jsr .scrolldown     ; scroll 4ever
+            sta $c054           ; switch to page 1x
+            ldx #30
+            jsr .scrolldown     ; scroll 4ever
+            sta $c055           ; switch to page 1x
+            jmp -
+    
+.draw
+            ldx #29
+.loop
+            sta $600,x
+            sta $680,x
+            sta $700,x
+            sta $780,x
+            dex
+            cpx #9
+            bne .loop
+
+            rts
+
+.cleartext
+            ldx #0
+            lda #$a0
+-           sta $650,x
+            sta $6d0,x
+            sta $750,x
+            sta $7d0,x
+            inx
+            cpx #40
+            bmi -
+            rts
+
+.scrolldown
+
+-
+			lda $5d0,x
+            pha ; Save value at bottom to wrap around
+            asl
+            asl
+            asl
+            asl
+            sta $5d0,x
+
+            jsr $300b
+            jmp +
+
+; Begin scroll code
+;            lda $550,x
+;            pha
+;            lsr
+;            lsr
+;            lsr
+;            lsr
+;            ora $5d0,x
+;            sta $5d0,x
+;            pla
+;            asl
+;            asl
+;            asl
+;            asl
+;            sta $550,x
+;            lda $4d0,x
+;            pha
+;            lsr
+;            lsr
+;            lsr
+;            lsr
+;            ora $550,x
+;            sta $550,x
+;            pla
+;            asl
+;            asl
+;            asl
+;            asl
+;            sta $4d0,x
+;            lda $450,x
+;            pha
+;            lsr
+;            lsr
+;            lsr
+;            lsr
+;            ora $4d0,x
+;            sta $4d0,x
+;            pla
+;            asl
+;            asl
+;            asl
+;            asl
+;            sta $450,x
+;            lda $7a8,x
+;            pha
+;            lsr
+;            lsr
+;            lsr
+;            lsr
+;            ora $450,x
+;            sta $450,x
+;            pla
+;            asl
+;            asl
+;            asl
+;            asl
+;            sta $7a8,x
+;            lda $728,x
+;            pha
+;            lsr
+;            lsr
+;            lsr
+;            lsr
+;            ora $7a8,x
+;            sta $7a8,x
+;            pla
+;            asl
+;            asl
+;            asl
+;            asl
+;            sta $728,x
+;            lda $6a8,x
+;            pha
+;            lsr
+;            lsr
+;            lsr
+;            lsr
+;            ora $728,x
+;            sta $728,x
+;            pla
+;            asl
+;            asl
+;            asl
+;            asl
+;            sta $6a8,x
+;            lda $628,x
+;            pha
+;            lsr
+;            lsr
+;            lsr
+;            lsr
+;            ora $6a8,x
+;            sta $6a8,x
+;            pla
+;            asl
+;            asl
+;            asl
+;            asl
+;            sta $628,x
+;            lda $5a8,x
+;            pha
+;            lsr
+;            lsr
+;            lsr
+;            lsr
+;            ora $628,x
+;            sta $628,x
+;            pla
+;            asl
+;            asl
+;            asl
+;            asl
+;            sta $5a8,x
+;            lda $528,x
+;            pha
+;            lsr
+;            lsr
+;            lsr
+;            lsr
+;            ora $5a8,x
+;            sta $5a8,x
+;            pla
+;            asl
+;            asl
+;            asl
+;            asl
+;            sta $528,x
+;            lda $4a8,x
+;            pha
+;            lsr
+;            lsr
+;            lsr
+;            lsr
+;            ora $528,x
+;            sta $528,x
+;            pla
+;            asl
+;            asl
+;            asl
+;            asl
+;            sta $4a8,x
+;            lda $428,x
+;            pha
+;            lsr
+;            lsr
+;            lsr
+;            lsr
+;            ora $4a8,x
+;            sta $4a8,x
+;            pla
+;            asl
+;            asl
+;            asl
+;            asl
+;            sta $428,x
+;            lda $780,x
+;            pha
+;            lsr
+;            lsr
+;            lsr
+;            lsr
+;            ora $428,x
+;            sta $428,x
+;            pla
+;            asl
+;            asl
+;            asl
+;            asl
+;            sta $780,x
+;            lda $700,x
+;            pha
+;            lsr
+;            lsr
+;            lsr
+;            lsr
+;            ora $780,x
+;            sta $780,x
+;            pla
+;            asl
+;            asl
+;            asl
+;            asl
+;            sta $700,x
+;            lda $680,x
+;            pha
+;            lsr
+;            lsr
+;            lsr
+;            lsr
+;            ora $700,x
+;            sta $700,x
+;            pla
+;            asl
+;            asl
+;            asl
+;            asl
+;            sta $680,x
+;            lda $600,x
+;            pha
+;            lsr
+;            lsr
+;            lsr
+;            lsr
+;            ora $680,x
+;            sta $680,x
+;            pla
+;            asl
+;            asl
+;            asl
+;            asl
+;            sta $600,x
+;            lda $580,x
+;            pha
+;            lsr
+;            lsr
+;            lsr
+;            lsr
+;            ora $600,x
+;            sta $600,x
+;            pla
+;            asl
+;            asl
+;            asl
+;            asl
+;            sta $580,x
+;            lda $500,x
+;            pha
+;            lsr
+;            lsr
+;            lsr
+;            lsr
+;            ora $580,x
+;            sta $580,x
+;            pla
+;            asl
+;            asl
+;            asl
+;            asl
+;            sta $500,x
+;            lda $480,x
+;            pha
+;            lsr
+;            lsr
+;            lsr
+;            lsr
+;            ora $500,x
+;            sta $500,x
+;            pla
+;            asl
+;            asl
+;            asl
+;            asl
+;            sta $480,x
+
+; end scroll code
+; Top row
++
+            lda $400,x
+            lsr
+            lsr
+            lsr
+            lsr
+            ora $480,x
+            sta $480,x
+
+
+			lda $400,x
+			asl
+			asl
+			asl
+			asl
+			sta $400,x
+            pla ; Restora value from bottom of screen
+            lsr
+            lsr
+            lsr
+            lsr
+            ora $400,x
+            sta $400,x
+
+			dex
+            cpx #10
+            bmi +
+			jmp -
+
++
+            rts
+
+TEXT       !byte $e5,$ae,$e9,$ae,$e7,$ae,$e8,$ae,$f4,$ae,$f9
+            nop
+            nop
+            nop
+            nop
+            nop
+            nop
+
+
+;
+; Generate scroll at addtess $3000
+;
+
+; 2260
+.generatescroll
+
+            lda #$0b        ; setup destination for copy
+            sta $42
+            lda #$30
+            sta $43
+
+            ldx #17
+-
+            lda #<.snipet1start
+            sta $3c
+            lda #>.snipet1start
+            sta $3d
+            lda #<.snipet1end-1
+            sta $3e
+            lda #>.snipet1end-1
+            sta $3f
+            ldy #0
+            jsr $fe2c       ; Copy first block
+
+            txa
+            jsr $f847       ; Calculate offset to y cord. LO in accumulator ($26). HI in $27
+            sta .snipet1start+1
+            sta .snipet1start+20
+            lda $27
+            sta .snipet1start+2
+            sta .snipet1start+21
+            txa
+            clc
+            adc #1
+            jsr $f847       ; Calculate offset to y cord. LO in accumulator ($26). HI in $27
+            sta .snipet1start+9
+            sta .snipet1start+12
+            lda $27
+            sta .snipet1start+10
+            sta .snipet1start+13
++
+            dex
+            bpl -
+            lda #$60
+            sta ($42),y
+            rts
+
+.snipet1start
+            lda $550,x              ; y
+            pha
+            lsr
+            lsr
+            lsr
+            lsr
+            ora $5d0,x              ; y+1
+            sta $5d0,x              ; y+1
+            pla
+            asl
+            asl
+            asl
+            asl
+            sta $550,x              ; y
+.snipet1end
