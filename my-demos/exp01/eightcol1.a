@@ -9,21 +9,60 @@
             sta $C053           ; Mixed mode
             sta $C05e           ; Enable 80col
             sta $c00d
-
-            jsr $f832           ; clear gr screen
-
-            jsr .cleartext
             sta $c001
+
+            jsr .cleartext
             sta $c055           ; switch to page 1x
-            jsr $f832           ; clear gr screen
             jsr .cleartext
 
-            sta $c054           ; switch to page 1
+;
+; Generate scroll at addtess $3000
+;
 
-            jsr .generatescroll
+.generatescroll
+
+;            lda #$00        ; setup destination for copy
+;            sta $42
+;            lda #$30
+;            sta $43
+
+            ldx #18
+-
+            txa
+            jsr $f847       ; Calculate offset to y cord. LO in accumulator ($26). HI in $27
+            sta .snipet1start+1
+            sta .snipet1start+20
+            lda $27
+            sta .snipet1start+2
+            sta .snipet1start+21
+            txa
+            adc #1
+            jsr $f847       ; Calculate offset to y cord. LO in accumulator ($26). HI in $27
+            sta .snipet1start+9
+            sta .snipet1start+12
+            lda $27
+            sta .snipet1start+10
+            sta .snipet1start+13
+
+            lda #<.snipet1start
+            sta $3c
+            lda #>.snipet1start
+            sta $3d
+            sta $3f         ; We don't cross page boundries 
+            lda #<.snipet1end-1
+            sta $3e
+            ldy #0
+            sty $42         ; save by re-using
+            jsr $fe2c       ; Copy block
+
++
+            dex
+            bpl -
+            lda #$60        ; write an RTS at the end of the uode
+            sta $31a2
+
 
 .start
-
 
             ldx #10
 -           lda TEXT,x
@@ -35,10 +74,12 @@
 
             lda #$ff
             jsr .draw
-            sta $c055           ; switch to page 1x
+            sta $c054           ; switch to page 1x
 
 ;            lda #$40           ; green
             lda #$30            ; violet
+            sta $43             ; To be used later. Can't change $30 above. This is the HI byte of the
+                                ; address where the scroll routine will be written to: $3000.
 ;            lda #$d0           ; yellow
             jsr .draw
 
@@ -53,10 +94,10 @@
             jsr .scrolldown     ; scroll 4ever
             ldx #30
             jsr .scrolldown     ; scroll 4ever
-            sta $c054           ; switch to page 1x
+            sta $c055           ; switch to page 1x
             ldx #30
             jsr .scrolldown     ; scroll 4ever
-            sta $c055           ; switch to page 1x
+            sta $c054           ; switch to page 1x
             jmp -
     
 .draw
@@ -73,15 +114,15 @@
             rts
 
 .cleartext
-            ldx #0
+            jsr $f836           ; clear gr screen
+            ldx #40
             lda #$a0
 -           sta $650,x
             sta $6d0,x
             sta $750,x
             sta $7d0,x
-            inx
-            cpx #40
-            bmi -
+            dex
+            bpl -
             rts
 
 .scrolldown
@@ -95,8 +136,7 @@
             asl
             sta $5d0,x
 
-            jsr $300b
-            jmp +
+            jsr $3000
 
 ; Begin scroll code
 ;            lda $550,x
@@ -351,25 +391,25 @@
 ;            asl
 ;            asl
 ;            sta $480,x
+;
+;            lda $400,x
+;            lsr
+;            lsr
+;            lsr
+;            lsr
+;            ora $480,x
+;            sta $480,x
+;
+;			lda $400,x
+;			asl
+;			asl
+;			asl
+;			asl
+;			sta $400,x
 
 ; end scroll code
 ; Top row
-+
-            lda $400,x
-            lsr
-            lsr
-            lsr
-            lsr
-            ora $480,x
-            sta $480,x
 
-
-			lda $400,x
-			asl
-			asl
-			asl
-			asl
-			sta $400,x
             pla ; Restora value from bottom of screen
             lsr
             lsr
@@ -387,61 +427,7 @@
             rts
 
 TEXT       !byte $e5,$ae,$e9,$ae,$e7,$ae,$e8,$ae,$f4,$ae,$f9
-            nop
-            nop
-            nop
-            nop
-            nop
-            nop
 
-
-;
-; Generate scroll at addtess $3000
-;
-
-; 2260
-.generatescroll
-
-            lda #$0b        ; setup destination for copy
-            sta $42
-            lda #$30
-            sta $43
-
-            ldx #17
--
-            lda #<.snipet1start
-            sta $3c
-            lda #>.snipet1start
-            sta $3d
-            lda #<.snipet1end-1
-            sta $3e
-            lda #>.snipet1end-1
-            sta $3f
-            ldy #0
-            jsr $fe2c       ; Copy first block
-
-            txa
-            jsr $f847       ; Calculate offset to y cord. LO in accumulator ($26). HI in $27
-            sta .snipet1start+1
-            sta .snipet1start+20
-            lda $27
-            sta .snipet1start+2
-            sta .snipet1start+21
-            txa
-            clc
-            adc #1
-            jsr $f847       ; Calculate offset to y cord. LO in accumulator ($26). HI in $27
-            sta .snipet1start+9
-            sta .snipet1start+12
-            lda $27
-            sta .snipet1start+10
-            sta .snipet1start+13
-+
-            dex
-            bpl -
-            lda #$60
-            sta ($42),y
-            rts
 
 .snipet1start
             lda $550,x              ; y
