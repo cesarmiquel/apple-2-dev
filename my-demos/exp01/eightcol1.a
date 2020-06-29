@@ -101,20 +101,19 @@ MV_DST_ST_HI   = $43
             sta $c055           ; switch to page 1x
             ldx #30
             jsr .scrolldown     ; scroll 4ever
-            sta $c054           ; switch to page 1x
+            sta $c054           ; switch to page 1
             bne -
     
 .draw
             ldx #29
 .loop
-            sta $600,x
-            sta $680,x
             sta $700,x
             sta $780,x
+            sta $428,x
+            sta $4a8,x
             dex
             cpx #9
             bne .loop
-            rts
 
 .scrolldown
 
@@ -140,14 +139,16 @@ MV_DST_ST_HI   = $43
 			dex
             cpx #10
             bpl -
+
+            lda $c000           ; Break when ESC pressed
+            cmp #$9b
+            bne +
 +
             rts
 
 !convtab "a2txt.bin" {
 TEXT       !Text "e.i.g.h.t.y"
 }
-
-
 
 .snipet1start
             lda $550,x              ; y
